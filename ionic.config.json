@@ -1,0 +1,7 @@
+{
+  "name": "siguemeappp",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
