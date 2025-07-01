@@ -1,0 +1,90 @@
+.login-content::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;   // Centra verticalmente
+  align-items: center;       // Centra horizontalmente
+  height: 100%;
+  padding: 20px;
+}
+
+.logo img {
+  width: 200px;
+  margin: 40px 0 20px;
+}
+
+.facebook-btn {
+  --background: #1877f2;
+  --color: white;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.separator .line {
+  flex: 1;
+  height: 1px;
+  background-color: #ccc;
+}
+
+.separator .or {
+  padding: 0 10px;
+  color: #999;
+  font-weight: bold;
+}
+
+.custom-input {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-top: 10px;
+  padding-left: 10px;
+  width: 100%;
+  background: #fafafa;
+  color: black;
+}
+
+ion-input.custom-input {
+  --padding-start: 10px;
+}
+
+.forgot {
+  width: 100%;
+  text-align: right;
+  margin: 5px 0 10px;
+}
+
+.forgot a {
+  color: #00376b;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.login-btn {
+  --background: #0095f6;
+  --color: white;
+  margin-top: 10px;
+}
+
+.signup {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.signup a {
+  color: #0095f6;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.footer {
+  margin-top: auto;
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  padding-bottom: 20px;
+}

@@ -1,0 +1,23 @@
+<ion-content class="home-background">
+  <!-- Fondo animado -->
+<div
+  *ngFor="let bubble of bubbles"
+  class="bubbles"
+  [ngStyle]="{
+    left: bubble.left,
+    width: bubble.size,
+    height: bubble.size,
+    animationDelay: bubble.delay,
+    animationDuration: bubble.duration,
+    opacity: bubble.opacity
+  }"
+></div>
+
+  <div class="container">
+    <img src="assets/logo.png" alt="Logo SÍGUEME" class="logo animate-zoom" />
+    
+    <ion-button expand="block" class="start-button" routerLink="/login">
+      Empezar
+    </ion-button>
+  </div>
+</ion-content>

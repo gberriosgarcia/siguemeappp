@@ -1,0 +1,178 @@
+ion-content {
+--background: linear-gradient(to bottom, #0f5fa5, #15a8b8);
+}
+
+.center-content::part(scroll) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;     
+  height: 100%;
+}
+
+.instagram-btn {
+  --background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  --color: white;
+  --box-shadow: none;
+  font-weight: bold;
+  text-transform: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 44px;
+  border-radius: 8px;
+}
+
+.logo-icon {
+  width: 45px;
+  height: 45px;
+}
+
+.Contenedor-card{
+  height: 400px;
+  width: 300px;
+  --color: white;
+  --background:transparent;
+  align-items: center;  
+  justify-content: center; 
+  box-shadow: none;
+}
+
+.titulo{
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+ion-input {
+  --background: #ffffff;
+  --color: #000000;
+  --padding-start: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.logosigueme {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%; /* Redondea el logo */
+  object-fit: cover; /* Asegura que el logo no se deforme */
+
+  animation: float 3s ease-in-out infinite; /* Aplica animación */
+  margin: auto; /* Centra horizontalmente */
+  display: block;
+  --background: transparent;
+  
+}
+
+.logo-card{
+
+  background: transparent !important;
+  box-shadow: none !important;
+  --background: transparent; /* Ionic-specific variable */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+
+/* Animación flotante */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+.button-login{
+  --color: white;
+  font-weight: bold;
+
+}
+
+.bubbles {
+    position: absolute;
+  bottom: -60px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation-name: floatBubble;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+
+
+/* Posiciones aleatorias */
+.bubbles {
+  left: calc(5% * var(--i));
+  animation-delay: calc(-0.5s * var(--i));
+  --i: ;
+}
+@keyframes floatBubble {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100vh); // sube fuera de la pantalla
+  }
+
+  
+}
+
+.login-container {
+  position: relative;
+  z-index: 1;
+  width: 90%;
+  max-width: 400px;
+  margin: 0 auto;
+  margin-top: -5vh;
+  padding: 2rem;
+  --background: transparent;
+  border-radius: 20px;
+
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+.input-item {
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  --background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  --padding-top: 15px;
+}
+
+.login-button {
+  margin-top: 1rem;
+  --background: #6e8efb;
+  --border-radius: 12px;
+  font-weight: bold;
+  --padding-top: 0px;
+}
+
+.links {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.links a {
+  color: #070c1f;
+  text-decoration: none;
+}

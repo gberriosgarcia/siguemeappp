@@ -1,20 +1,41 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+<ion-content class="ion-padding">
+  <!-- Barra superior/menú -->
+  <ion-toolbar class="barrasuperior" style="--background: transparent; --box-shadow: none;">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
   </ion-toolbar>
-</ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Título -->
+  <p class="titulo-personas">Personas cerca tuyo:</p>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <!-- 📍 Mapa en tiempo real -->
+  <div class="map-container">
+    <!-- Leaflet renderizará aquí -->
+    <div id="map"></div>
+  </div>
+
+  <!-- Slider de personas -->
+  <ion-slides [options]="slideOpts">
+    <ion-slide *ngFor="let grupo of grupos">
+      <div class="user-row">
+        <button *ngFor="let user of grupo"
+                routerLink="/previewuser"
+                class="user-card-button">
+          <div class="user-info">
+            <img [src]="user.avatar" alt="{{ user.name }}" class="avatar" />
+            <span class="user-name">{{ user.name }}</span>
+          </div>
+          <ion-icon name="ellipsis-vertical-outline" class="options-icon"></ion-icon>
+        </button>
+      </div>
+    </ion-slide>
+  </ion-slides>
+
+  <!-- Paginador -->
+  <div class="pager">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
   </div>
 </ion-content>

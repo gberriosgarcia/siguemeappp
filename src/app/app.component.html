@@ -1,3 +1,35 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-menu side="start" menuId="first" contentId="main-content">
+    <ion-header>
+      <ion-toolbar color="primary" class="toolbar">
+        <ion-title>Menú</ion-title>
+      </ion-toolbar>z
+    </ion-header>
+
+    <ion-content>
+      <ion-list>
+
+      <ion-card class="avatar-card" (click)="cambiarAvatar()">
+  <div class="avatar-wrapper">
+    <img [src]="avatarUrl" class="avatar" alt="avatar" />
+    <!-- Ícono de cámara flotante -->
+    <ion-icon name="camera" class="camera-icon"></ion-icon>
+  </div>
+</ion-card>
+
+        <ion-card class="saludo">
+          <h2><strong>{{ bienvenidos }}</strong><br />{{ email }}</h2>
+        </ion-card>
+
+        <ion-item routerLink="/profile">Perfil</ion-item>
+        <ion-item routerLink="/login">Iniciar Sesión</ion-item>
+        <ion-item routerLink="/about">Acerca de</ion-item>
+
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <div class="ion-page" id="main-content">
+    <ion-router-outlet></ion-router-outlet>
+  </div>
 </ion-app>

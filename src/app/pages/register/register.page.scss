@@ -1,0 +1,83 @@
+.content-bg {
+position: relative !important;
+--background: linear-gradient(to bottom, #0e6596, #03a7b3);
+padding: 0 !important;
+min-height: 100vh;
+display: block !important;
+}
+
+.custom-header{
+    --background: transparent;
+    box-shadow: none;
+}
+
+.botonatras{
+    color:white;
+}
+
+.form-container {
+margin: 80px auto 0 auto; /* Ajusta el número según qué tan abajo lo necesites */
+width: 100%;
+max-width: 400px;
+padding: 20px;
+background: transparent;
+border-radius: 16px;
+
+z-index: 1;
+}
+.registro-form {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.input-item {
+--background: #ffffff !important;
+--highlight-color-focused: #3880ff !important;
+--border-color: #ccc !important;
+border-radius: 8px;
+}
+
+.registro-btn {
+margin-top: 20px !important;
+}
+
+.login-link {
+text-align: center;
+margin-top: 16px;
+font-size: 14px;
+}
+
+.error {
+font-size: 12px;
+margin-top: 2px;
+margin-left: 12px;
+}
+
+.bubbles {
+position: absolute;
+bottom: 0;
+background: rgba(0, 162, 255, 0.3);
+border-radius: 50%;
+animation-name: rise;
+animation-timing-function: ease-in;
+animation-iteration-count: infinite;
+z-index: 0;
+}
+
+@keyframes rise {
+0% {
+    transform: translateY(100vh);
+}
+100% {
+    transform: translateY(-100vh);
+}
+}
+
+h2 {
+margin-bottom: 1.5rem;
+color: white;
+text-align: center;
+margin-top: 50px;
+padding-top: 10px;
+}

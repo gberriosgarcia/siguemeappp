@@ -1,0 +1,124 @@
+
+<ion-content class="ion-padding content-bg">
+
+  
+  <ion-header class="custom-header">
+    <ion-toolbar style="--background: transparent; --box-shadow: none; --border: none;">
+      <ion-buttons slot="start">
+        <ion-back-button class="botonatras" defaultHref="/start" text="">
+        </ion-back-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- 2️⃣ Título principal -->
+  <h2>Regístrate</h2>
+
+  <!-- 3️⃣ MENSAJE DE ÉXITO -->
+  <ion-card color="success"
+            *ngIf="registroExitoso"
+            class="success-card">
+    <ion-card-content class="ion-text-center">
+      ¡Registro exitoso!
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 4️⃣ Formulario reactivo -->
+  <div class="form-container">
+    <form [formGroup]="registroForm"
+          (ngSubmit)="onSubmit()"
+          class="registro-form">
+
+      <!-- Usuario -->
+      <ion-item class="input-item">
+        <ion-label position="floating">Nombre de usuario</ion-label>
+        <ion-input formControlName="usuario"></ion-input>
+      </ion-item>
+      <ion-text color="danger"
+                *ngIf="registroForm.get('usuario')?.invalid
+                     && registroForm.get('usuario')?.touched">
+        <p *ngIf="registroForm.get('usuario')?.errors?.['required']">
+          Campo requerido
+        </p>
+      </ion-text>
+
+      <!-- Correo -->
+      <ion-item class="input-item">
+        <ion-label position="floating">Correo electrónico</ion-label>
+        <ion-input type="email" formControlName="correo"></ion-input>
+      </ion-item>
+      <ion-text color="danger"
+                *ngIf="registroForm.get('correo')?.invalid
+                     && registroForm.get('correo')?.touched">
+        <p *ngIf="registroForm.get('correo')?.errors?.['required']">Campo requerido</p>
+        <p *ngIf="registroForm.get('correo')?.errors?.['email']">Correo no válido</p>
+      </ion-text>
+
+      <!-- Fecha de nacimiento -->
+      <ion-item class="input-item">
+        <ion-label position="floating">Fecha de nacimiento</ion-label>
+        <ion-datetime
+          presentation="date"
+          [max]="hoy"
+          formControlName="fechaNacimiento">
+        </ion-datetime>
+      </ion-item>
+
+      <!-- Contraseña -->
+      <ion-item class="input-item">
+        <ion-label position="floating">Contraseña</ion-label>
+        <ion-input type="password" formControlName="contrasena"></ion-input>
+      </ion-item>
+      <ion-text color="danger"
+                *ngIf="registroForm.get('contrasena')?.invalid
+                     && registroForm.get('contrasena')?.touched">
+        <p *ngIf="registroForm.get('contrasena')?.errors?.['required']">Campo requerido</p>
+        <p *ngIf="registroForm.get('contrasena')?.errors?.['minlength']">Mínimo 6 caracteres</p>
+        <p *ngIf="registroForm.get('contrasena')?.errors?.['pattern']">Debe contener letras y números</p>
+      </ion-text>
+
+      <!-- Confirmar contraseña -->
+      <ion-item class="input-item">
+        <ion-label position="floating">Confirmar contraseña</ion-label>
+        <ion-input type="password" formControlName="confirmarContrasena"></ion-input>
+      </ion-item>
+      <ion-text color="danger"
+                *ngIf="registroForm.get('confirmarContrasena')?.invalid
+                     && registroForm.get('confirmarContrasena')?.touched">
+        <p *ngIf="registroForm.get('confirmarContrasena')?.errors?.['required']">Campo requerido</p>
+        <p *ngIf="registroForm.get('confirmarContrasena')?.errors?.['noCoincide']">
+          Las contraseñas no coinciden
+        </p>
+      </ion-text>
+
+      <!-- Botón enviar -->
+      <ion-button expand="block"
+                  type="submit"
+                  [disabled]="registroForm.invalid"
+                  class="registro-btn">
+        Registrarse
+      </ion-button>
+    </form>
+
+    <!-- Enlace a la página de login -->
+    <div class="login-link">
+      <ion-text>
+        ¿Ya tienes cuenta?
+        <a routerLink="/login">Inicia sesión</a>
+      </ion-text>
+    </div>
+  </div>
+
+  <!-- 5️⃣ Burbujas de fondo (animación decorativa) -->
+  <div *ngFor="let bubble of bubbles"
+       class="bubbles"
+       [ngStyle]="{
+         left: bubble.left,
+         width: bubble.size,
+         height: bubble.size,
+         animationDelay: bubble.delay,
+         animationDuration: bubble.duration,
+         opacity: bubble.opacity
+       }">
+  </div>
+</ion-content>

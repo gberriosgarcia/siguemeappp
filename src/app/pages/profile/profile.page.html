@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text="" class="botonatras"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Encabezado de perfil con avatar y nombre -->
+  <div class="profile-header">
+    <img [src]="avatarUrl" class="avatar" alt="Avatar" />
+    <h2>{{ nombreUsuario }}</h2>
+  </div>
+
+  <!-- Tabs de fotos -->
+  <ion-segment value="photos" class="photos-tab">
+    <ion-segment-button value="photos">
+      <ion-label>PHOTOS</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Galería de fotos -->
+  <div class="gallery">
+    <ng-container *ngFor="let foto of fotos; let i = index">
+      <div class="photo-cell" (click)="cambiarFoto(i)">
+        <img [src]="foto" alt="Foto {{ i + 1 }}" />
+      </div>
+    </ng-container>
+
+    <!-- Espacios vacíos si hay menos de 9 -->
+    <div
+      *ngFor="let espacio of [].constructor(9 - fotos.length)"
+      class="photo-cell empty"
+    ></div>
+  </div>
+
+  <!-- Botón para añadir nueva foto -->
+  <ion-button expand="block" (click)="subirFoto()" [disabled]="fotos.length >= 9">
+    SUBIR FOTO
+  </ion-button>
+</ion-content>

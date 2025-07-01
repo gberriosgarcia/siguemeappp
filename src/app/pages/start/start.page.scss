@@ -1,0 +1,105 @@
+.home-background {
+  --background: linear-gradient(to bottom, #0e6596, #03a7b3);
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.logo {
+  width: 160px;
+  height: auto;
+  margin-bottom: 40px;
+  border-radius: 50%;
+}
+
+.animate-zoom {
+  animation: zoomIn 1.8s ease-out infinite;
+}
+
+.start-button {
+  --background: #ffffff;
+  --color: #0e6596;
+  font-weight: bold;
+  border-radius: 12px;
+  padding: 12px 24px;
+  width: 70%;
+  max-width: 300px;
+ 
+}
+
+/* Logo Zoom Animation */
+@keyframes zoomIn {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+/* Fondo de burbujas animadas */
+.bubbles {
+    position: absolute;
+  bottom: -60px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation-name: floatBubble;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+.bubble {
+  position: absolute;
+  bottom: -100px;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: rise 15s infinite ease-in;
+}
+
+.bubble:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-110vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Posiciones aleatorias */
+.bubbles {
+  left: calc(5% * var(--i));
+  animation-delay: calc(-0.5s * var(--i));
+  --i: ;
+}
+@keyframes floatBubble {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-110vh);
+  }
+}
+

@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { SessionService } from 'src/app/services/session.service';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { AvatarService } from 'src/app/services/avatar.service';
 
 @Component({
   selector: 'app-root',
@@ -7,5 +10,37 @@ import { Component } from '@angular/core';
   standalone: false,
 })
 export class AppComponent {
-  constructor() {}
+  bienvenidos = '¡Bienvenid@!';
+  email = '';
+  avatarUrl: string = 'assets/avatar.png';
+
+  constructor(
+    private session: SessionService,
+    private avatarService: AvatarService
+  ) {
+    this.session.perfil$.subscribe((p) => {
+      this.bienvenidos = p ? `¡Bienvenid@, ${p.usuario}!` : '¡Bienvenid@!';
+      this.email = p ? p.correo : '';
+    });
+
+    this.avatarService.avatar$.subscribe(url => {
+      this.avatarUrl = url;
+    });
+  }
+
+  async cambiarAvatar() {
+    try {
+      const img = await Camera.getPhoto({
+        quality: 80,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Photos,
+      });
+
+      if (img?.dataUrl) {
+        await this.avatarService.actualizarAvatar(img.dataUrl);
+      }
+    } catch (err) {
+      console.log('Cancelado o error:', err);
+    }
+  }
 }

@@ -1,0 +1,50 @@
+
+<ion-content [fullscreen]="true" class="ion-padding fondo-login center-content">
+
+  <ion-card class=" logo-card">
+    <img src="assets/logo.png" class="logosigueme" alt="Instagram Logo" />
+  </ion-card>
+  
+<div
+  *ngFor="let bubble of bubbles"
+  class="bubbles"
+  [ngStyle]="{
+    left: bubble.left,
+    width: bubble.size,
+    height: bubble.size,
+    animationDelay: bubble.delay,
+    animationDuration: bubble.duration,
+    opacity: bubble.opacity
+  }"
+></div>
+
+<div class="login-container">
+
+    <h2>Iniciar sesión</h2>
+
+    <ion-item lines="none" class="input-item">
+      <ion-icon slot="start" name="person-outline" [style.color]="'black'"></ion-icon>
+      <ion-input  [(ngModel)]="email" type="email" placeholder="Correo o usuario"></ion-input>
+    </ion-item>
+
+    <ion-item lines="none" class="input-item">
+      <ion-icon slot="start" name="lock-closed-outline" [style.color]="'black'" ></ion-icon>
+      <ion-input [(ngModel)]="password" type="password" placeholder="Contraseña"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" (click)="login()" class="button-login">Entrar</ion-button>
+
+    <div class="links">
+      <a href="">¿Olvidaste tu contraseña?</a>
+      <a routerLink="/register">Registrarse</a>
+    </div>
+  </div>
+
+
+  
+<ion-button routerLink="/instalogin" expand="block" class="instagram-btn">
+  <img src="assets/logo_instagram.png" class="logo-icon" alt="Instagram Logo" />
+  Continuar con Instagram
+</ion-button>
+
+</ion-content>
