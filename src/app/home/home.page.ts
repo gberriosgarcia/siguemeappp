@@ -1,12 +1,10 @@
-import { Component, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
-import * as L from 'leaflet';
+import { Component, AfterViewInit, OnDestroy } from '@angular/core';
 import { SessionService } from 'src/app/services/session.service';
 import { UsuarioCercano } from 'src/app/models/usuario-cercano.model';
 import { Perfil } from 'src/app/models/perfil.model';
 import { Subscription } from 'rxjs';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Geolocation } from '@capacitor/geolocation';
-declare const firebase: any;
 
 @Component({
   selector: 'app-home',
@@ -18,13 +16,11 @@ export class HomePage implements AfterViewInit, OnDestroy {
   usuariosCercanos: UsuarioCercano[] = [];
   email = '';
   slideOpts = { initialSlide: 0, speed: 400 };
-  private map: any;
   private sub: Subscription | null = null;
 
   constructor(
     private session: SessionService,
-    private firestore: AngularFirestore,
-    private zone: NgZone
+    private firestore: AngularFirestore
   ) {}
 
   async ngAfterViewInit() {
@@ -49,33 +45,24 @@ export class HomePage implements AfterViewInit, OnDestroy {
           timestamp: Date.now(),
         });
 
-      this.zone.run(() => {
-        this.map = L.map('map').setView([latitude, longitude], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-        }).addTo(this.map);
-
-        L.marker([latitude, longitude]).addTo(this.map).bindPopup('Tú');
-
-        this.sub = this.firestore
-          .collection<UsuarioCercano>('usuarios')
-          .valueChanges()
-          .subscribe((usuarios) => {
-            this.usuariosCercanos = usuarios.filter((u) => {
-              const distancia = this.calcularDistancia(
-                latitude,
-                longitude,
-                u.lat,
-                u.lon
-              );
-              return (
-                distancia <= 500 &&
-                this.emailToKey(u.correo) !== this.emailToKey(this.email)
-              );
-            });
-            console.log('[Home] Usuarios encontrados:', this.usuariosCercanos);
+      this.sub = this.firestore
+        .collection<UsuarioCercano>('usuarios')
+        .valueChanges()
+        .subscribe((usuarios) => {
+          this.usuariosCercanos = usuarios.filter((u) => {
+            const distancia = this.calcularDistancia(
+              latitude,
+              longitude,
+              u.lat,
+              u.lon
+            );
+            return (
+              distancia <= 500 &&
+              this.emailToKey(u.correo) !== this.emailToKey(this.email)
+            );
           });
-      });
+          console.log('[Home] Usuarios encontrados:', this.usuariosCercanos);
+        });
     } catch (err) {
       console.error('[Home] Error general:', err);
     }
