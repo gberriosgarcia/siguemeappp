@@ -1,9 +1,9 @@
-import { Component, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
 import { SessionService } from 'src/app/services/session.service';
 import { UsuarioCercano } from 'src/app/models/usuario-cercano.model';
 import { Perfil } from 'src/app/models/perfil.model';
 import { Subscription } from 'rxjs';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Firestore, collection, collectionData, doc, setDoc } from '@angular/fire/firestore';
 import { Geolocation } from '@capacitor/geolocation';
 
 @Component({
@@ -20,49 +20,41 @@ export class HomePage implements AfterViewInit, OnDestroy {
 
   constructor(
     private session: SessionService,
-    private firestore: AngularFirestore
+    private firestore: Firestore,
+    private zone: NgZone
   ) {}
 
   async ngAfterViewInit() {
-    const perfil: Perfil | null = await this.session.obtenerPerfil();
-    if (!perfil?.correo) return;
-
-    this.email = perfil.correo;
-
     try {
+      const perfil: Perfil | null = await this.session.obtenerPerfil();
+      if (!perfil?.correo) return;
+
+      this.email = perfil.correo;
+
       const posicion = await Geolocation.getCurrentPosition();
       const { latitude, longitude } = posicion.coords;
 
-      await this.firestore
-        .collection('usuarios')
-        .doc(this.emailToKey(perfil.correo))
-        .set({
-          correo: perfil.correo,
-          nombre: perfil.usuario || 'Usuario',
-          avatar: perfil.avatar || '',
-          lat: latitude,
-          lon: longitude,
-          timestamp: Date.now(),
-        });
+      const userDoc = doc(this.firestore, 'usuarios', this.emailToKey(perfil.correo));
+      await setDoc(userDoc, {
+        correo: perfil.correo,
+        nombre: perfil.usuario || 'Usuario Anónimo',
+        avatar: perfil.avatar || '',
+        lat: latitude,
+        lon: longitude,
+        timestamp: Date.now(),
+      }, { merge: true });
 
-      this.sub = this.firestore
-        .collection<UsuarioCercano>('usuarios')
-        .valueChanges()
-        .subscribe((usuarios) => {
-          this.usuariosCercanos = usuarios.filter((u) => {
-            const distancia = this.calcularDistancia(
-              latitude,
-              longitude,
-              u.lat,
-              u.lon
-            );
-            return (
-              distancia <= 500 &&
-              this.emailToKey(u.correo) !== this.emailToKey(this.email)
-            );
+      const usuariosRef = collection(this.firestore, 'usuarios');
+      this.sub = collectionData(usuariosRef, { idField: 'id' }).subscribe((usuarios: any[]) => {
+        this.zone.run(() => {
+          this.usuariosCercanos = usuarios.filter((user) => {
+            if (!user?.lat || !user?.lon) return false;
+            const distancia = this.calcularDistancia(latitude, longitude, user.lat, user.lon);
+            return distancia <= 500 && this.emailToKey(user.correo) !== this.emailToKey(this.email);
           });
-          console.log('[Home] Usuarios encontrados:', this.usuariosCercanos);
+          console.log('[Home] Usuarios cercanos encontrados:', this.usuariosCercanos);
         });
+      });
     } catch (err) {
       console.error('[Home] Error general:', err);
     }

@@ -1,12 +1,26 @@
+// Import the functions you need from the SDKs you need
+
+import { initializeApp } from "firebase/app";
+
+// TODO: Add SDKs for Firebase products that you want to use
+
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+
+// Your web app's Firebase configuration
+
 export const environment = {
   production: false,
   firebaseConfig: {
-    apiKey: "AIzaSyByjq1LDwpZYzmoDalBz79QtJ2-05_xkRY",
-    authDomain: "siguemeapp-57d20.firebaseapp.com",
-    projectId: "siguemeapp-57d20",
-    storageBucket: "siguemeapp-57d20.appspot.com",
-    messagingSenderId: "1041412749212",
-    appId: "1:1041412749212:web:945daead675de923b9ba59",
-    databaseURL: "https://siguemeapp-57d20-default-rtdb.firebaseio.com"
+    apiKey: "AIzaSyDlK97e7qXkr2HQHk-zasvyrXA9Kbuy8Io",
+    authDomain: "sigueme2-2fb1f.firebaseapp.com",
+    projectId: "sigueme2-2fb1f",
+    storageBucket: "sigueme2-2fb1f.appspot.com", // 👈 NO .firebasestorage.app
+    messagingSenderId: "955352494483",
+    appId: "1:955352494483:web:1494cbe5993c565ad97866"
   }
 };
+
+
+
+

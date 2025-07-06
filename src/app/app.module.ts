@@ -18,7 +18,8 @@ import { SessionService } from 'src/app/services/session.service';
 // Firebase compat
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { environment } from '../environments/environment';
+import { environment } from 'src/environments/environment';
+
 
 @NgModule({
   declarations: [AppComponent],
@@ -28,7 +29,7 @@ import { environment } from '../environments/environment';
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
-    AngularFireModule.initializeApp(environment.firebaseConfig), // ✅
+    AngularFireModule.initializeApp(environment.firebaseConfig),
     AngularFirestoreModule, // ✅
   ],
   providers: [
