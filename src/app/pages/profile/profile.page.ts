@@ -4,6 +4,8 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Capacitor } from '@capacitor/core';
 import { Component } from '@angular/core';
 import { AvatarService } from 'src/app/services/avatar.service';
+import { SessionService } from 'src/app/services/session.service';
+import { Preferences } from '@capacitor/preferences';
 
 @Component({
   selector: 'app-profile',
@@ -15,22 +17,29 @@ export class ProfilePage {
   nombreUsuario = 'Usuario';
   fotos: SafeUrl[] = [];
   avatarUrl = 'assets/avatar.png';
+  email = '';
 
   constructor(
     private camera: Camera,
     private platform: Platform,
     private sanitizer: DomSanitizer,
-    private avatarService: AvatarService
-
+    private avatarService: AvatarService,
+    private session: SessionService
   ) {
-     this.avatarService.avatar$.subscribe(url => {
+    this.avatarService.avatar$.subscribe(url => {
       this.avatarUrl = url;
     });
-    this.cargarFotosGuardadas();
-    
+
+    this.session.perfil$.subscribe(p => {
+      if (p?.correo) {
+        this.email = p.correo;
+        this.nombreUsuario = p.usuario || 'Usuario';
+        this.cargarFotosGuardadas();
+      }
+    });
   }
 
-  subirFoto(index?: number) {
+  async subirFoto(index?: number) {
     if (!this.platform.is('cordova') && !this.platform.is('capacitor')) {
       alert('Esta función solo está disponible en dispositivos móviles.');
       return;
@@ -63,7 +72,7 @@ export class ProfilePage {
           alert('Solo puedes subir hasta 9 fotos.');
         }
 
-        this.guardarFotos();
+        await this.guardarFotos();
       },
       (err) => {
         console.log('Error al subir la foto', err);
@@ -71,15 +80,17 @@ export class ProfilePage {
     );
   }
 
-  guardarFotos() {
+  async guardarFotos() {
+    const clave = 'fotosPerfil_' + this.email;
     const fotosBase64 = this.fotos.map((f: any) => f.changingThisBreaksApplicationSecurity || f);
-    localStorage.setItem('fotosPerfil', JSON.stringify(fotosBase64));
+    await Preferences.set({ key: clave, value: JSON.stringify(fotosBase64) });
   }
 
-  cargarFotosGuardadas() {
-    const guardadas = localStorage.getItem('fotosPerfil');
-    if (guardadas) {
-      const urls: string[] = JSON.parse(guardadas);
+  async cargarFotosGuardadas() {
+    const clave = 'fotosPerfil_' + this.email;
+    const { value } = await Preferences.get({ key: clave });
+    if (value) {
+      const urls: string[] = JSON.parse(value);
       this.fotos = urls.map((url) => this.sanitizer.bypassSecurityTrustUrl(url));
     }
   }

@@ -19,8 +19,15 @@ export class AppComponent {
     private avatarService: AvatarService
   ) {
     this.session.perfil$.subscribe((p) => {
-      this.bienvenidos = p ? `¡Bienvenid@, ${p.usuario}!` : '¡Bienvenid@!';
-      this.email = p ? p.correo : '';
+      if (p?.correo) {
+        this.bienvenidos = `¡Bienvenid@, ${p.usuario}!`;
+        this.email = p.correo;
+
+        // Cargar avatar guardado para este usuario
+        this.avatarService.cargarAvatar(this.email);
+      } else {
+        this.bienvenidos = '¡Bienvenid@!';
+      }
     });
 
     this.avatarService.avatar$.subscribe(url => {
@@ -36,11 +43,12 @@ export class AppComponent {
         source: CameraSource.Photos,
       });
 
-      if (img?.dataUrl) {
-        await this.avatarService.actualizarAvatar(img.dataUrl);
+      if (img?.dataUrl && this.email) {
+        await this.avatarService.actualizarAvatar(img.dataUrl, this.email);
       }
     } catch (err) {
       console.log('Cancelado o error:', err);
     }
   }
 }
+

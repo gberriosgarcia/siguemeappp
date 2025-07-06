@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class UserService {
-  private api = 'https://api.example.com/users'; // Reemplaza por tu endpoint real
+  private api = 'https://api.example.com/users'; // 
 
   constructor(private http: HttpClient) {}
 

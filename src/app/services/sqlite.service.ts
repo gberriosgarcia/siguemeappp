@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import { SQLite, SQLiteObject } from '@awesome-cordova-plugins/sqlite/ngx';
 
@@ -29,24 +28,28 @@ export class SqliteService {
     );
   }
 
-  /* --------------- CRUD Usuarios ------------------ */
+  /* --------------- Crear usuario ------------------ */
   async addUser(usuario: string, correo: string, pass: string, fecha: string): Promise<void> {
     await this.init();
     await this.db!.executeSql(
       'INSERT INTO usuarios(usuario, correo, contrasena, fecha_nacimiento) VALUES(?, ?, ?, ?)',
-      [usuario, correo, pass, fecha]
+      [usuario.trim(), correo.trim().toLowerCase(), pass.trim(), fecha]
     );
+    console.log('[SQLite] Usuario registrado:', usuario, correo);
   }
 
+  /* --------------- Verificar credenciales --------- */
   async isValid(ident: string, pass: string): Promise<boolean> {
     await this.init();
     const res = await this.db!.executeSql(
-      `SELECT 1 FROM usuarios WHERE (usuario = ? OR correo = ?) AND contrasena = ? LIMIT 1`,
+      `SELECT * FROM usuarios WHERE (usuario = ? OR correo = ?) AND contrasena = ? LIMIT 1`,
       [ident, ident, pass]
     );
+    console.log('[SQLite] Resultado validación:', res.rows.length, res.rows.item(0));
     return res.rows.length > 0;
   }
 
+  /* --------------- Obtener perfil ------------------ */
   async getPerfil(ident: string): Promise<Perfil | null> {
     await this.init();
     const res = await this.db!.executeSql(
@@ -55,8 +58,19 @@ export class SqliteService {
     );
     if (res.rows.length) {
       const item = res.rows.item(0) as any;
+      console.log('[SQLite] Perfil obtenido:', item);
       return { usuario: item.usuario, correo: item.correo };
     }
     return null;
+  }
+
+  /* --------------- Obtener todos los usuarios ----- */
+  async getAllUsers(): Promise<void> {
+    await this.init();
+    const res = await this.db!.executeSql('SELECT * FROM usuarios', []);
+    console.log(`[SQLite] Total usuarios encontrados: ${res.rows.length}`);
+    for (let i = 0; i < res.rows.length; i++) {
+      console.log('[SQLite] Usuario en BD:', res.rows.item(i));
+    }
   }
 }

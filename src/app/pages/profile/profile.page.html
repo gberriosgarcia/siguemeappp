@@ -23,6 +23,7 @@
 
   <!-- Galería de fotos -->
   <div class="gallery">
+    <!-- Fotos existentes -->
     <ng-container *ngFor="let foto of fotos; let i = index">
       <div class="photo-cell" (click)="cambiarFoto(i)">
         <img [src]="foto" alt="Foto {{ i + 1 }}" />
@@ -38,6 +39,7 @@
 
   <!-- Botón para añadir nueva foto -->
   <ion-button expand="block" (click)="subirFoto()" [disabled]="fotos.length >= 9">
+    <ion-icon name="camera" slot="start"></ion-icon>
     SUBIR FOTO
   </ion-button>
 </ion-content>
