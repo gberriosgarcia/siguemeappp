@@ -7,18 +7,18 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-// Plugins
 import { WebView } from '@awesome-cordova-plugins/ionic-webview/ngx';
 import { SQLite } from '@awesome-cordova-plugins/sqlite/ngx';
 
-// Servicios
 import { SqliteService } from 'src/app/services/sqlite.service';
 import { SessionService } from 'src/app/services/session.service';
 
-// Firebase compat
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { environment } from 'src/environments/environment';
+import { environment } from '../environments/environment';
+
+import { Camera } from '@awesome-cordova-plugins/camera/ngx';
+
 
 
 @NgModule({
@@ -29,7 +29,7 @@ import { environment } from 'src/environments/environment';
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
-    AngularFireModule.initializeApp(environment.firebaseConfig),
+    AngularFireModule.initializeApp(environment.firebaseConfig), // ✅
     AngularFirestoreModule, // ✅
   ],
   providers: [
@@ -37,9 +37,9 @@ import { environment } from 'src/environments/environment';
     SQLite,
     SqliteService,
     SessionService,
+    Camera,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
-

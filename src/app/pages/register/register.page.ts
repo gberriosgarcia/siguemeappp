@@ -9,12 +9,14 @@ import {
 import { ToastController } from '@ionic/angular';
 import { SqliteService } from 'src/app/services/sqlite.service';
 
+// ✅ FIREBASE COMPATIBLE
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: false,
-  
 })
 export class RegisterPage implements OnInit {
   registroForm!: FormGroup;
@@ -25,7 +27,8 @@ export class RegisterPage implements OnInit {
   constructor(
     private fb: FormBuilder,
     private toastCtrl: ToastController,
-    private sqlite: SqliteService
+    private sqlite: SqliteService,
+    private firestore: AngularFirestore // ✅ aquí va
   ) {}
 
   ngOnInit() {
@@ -56,16 +59,39 @@ export class RegisterPage implements OnInit {
     if (this.registroForm.invalid) return;
 
     const { usuario, correo, contrasena, fechaNacimiento } = this.registroForm.value;
-    await this.sqlite.addUser(usuario, correo, contrasena, fechaNacimiento);
-    this.registroExitoso = true;
 
-    (await this.toastCtrl.create({
-      message: '¡Registro exitoso!',
-      duration: 2000,
-      color: 'success',
-    })).present();
+    try {
+      await this.sqlite.addUser(usuario, correo, contrasena, fechaNacimiento);
+      console.log('[SQLite] Usuario registrado:', usuario, correo);
 
-    this.registroForm.reset();
+      // ✅ Guarda en Firestore usando compat
+      await this.firestore.collection('usuarios').add({
+        usuario,
+        correo,
+        contrasena,
+        fechaNacimiento,
+        registradoEn: new Date().toISOString()
+      });
+
+      console.log('[Firebase] Usuario registrado en Firestore');
+
+      this.registroExitoso = true;
+
+      (await this.toastCtrl.create({
+        message: '¡Registro exitoso!',
+        duration: 2000,
+        color: 'success',
+      })).present();
+
+      this.registroForm.reset();
+    } catch (error: any) {
+      console.error('[Registro] Error al guardar en SQLite/Firebase:', error.code, error.message, error);
+      (await this.toastCtrl.create({
+        message: 'Error: ' + (error.message || 'Error desconocido'),
+        duration: 3000,
+        color: 'danger',
+      })).present();
+    }
   }
 
   private generateBubbles(count: number) {
@@ -78,3 +104,4 @@ export class RegisterPage implements OnInit {
     }));
   }
 }
+

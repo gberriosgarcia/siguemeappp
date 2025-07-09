@@ -1,75 +1,74 @@
 import { Injectable } from '@angular/core';
-import { GeoPoint, Firestore, collection, doc, setDoc, query, where, getDocs } from '@angular/fire/firestore';
-import { collectionData } from 'rxfire/firestore';
-import { UsuarioCercano } from '../models/usuario-cercano.model';
 import { Geolocation } from '@capacitor/geolocation';
-import { Observable, from } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { addDoc, getFirestore, CollectionReference } from 'firebase/firestore';
+import { getDatabase, ref, set, get } from 'firebase/database';
 
-@Injectable({ providedIn: 'root' })
+interface UsuarioGeo {
+  usuario: string;
+  lat: number;
+  lon: number;
+  actualizadoEn: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
 export class UbicacionGeoService {
-  constructor(private firestore: Firestore) {}
+  private radioDeteccionMetros = 10;
 
-  async guardarUbicacion(perfil: { correo: string; usuario?: string; avatar?: string }) {
-    const posicion = await Geolocation.getCurrentPosition();
-    const { latitude, longitude } = posicion.coords;
+  async guardarUbicacion(uid: string, usuario: string): Promise<void> {
+    const coords = await Geolocation.getCurrentPosition();
+    const db = getDatabase();
+    const userRef = ref(db, 'usuariosGeo/' + uid);
 
-    console.log('[UbicacionGeoService] Ubicación obtenida:', latitude, longitude);
-
-    const userRef = doc(this.firestore, 'usuarios', this.emailToKey(perfil.correo));
-    const data = {
-      correo: perfil.correo,
-      nombre: perfil.usuario || 'Usuario',
-      avatar: perfil.avatar || '',
-      ubicacion: new GeoPoint(latitude, longitude),
-      timestamp: Date.now(),
-    };
-
-    await setDoc(userRef, data);
+    await set(userRef, {
+      usuario,
+      lat: coords.coords.latitude,
+      lon: coords.coords.longitude,
+      actualizadoEn: new Date().toISOString(),
+    });
   }
 
-  obtenerUsuariosCercanos(lat: number, lon: number, distanciaMax = 500): Observable<UsuarioCercano[]> {
-    const colRef = collection(this.firestore, 'usuarios') as CollectionReference<any>;
+  async obtenerUsuariosCercanos(uidActual: string): Promise<UsuarioGeo[]> {
+    const db = getDatabase();
+    const snapshot = await get(ref(db, 'usuariosGeo'));
+    const usuarios = snapshot.val() as { [uid: string]: UsuarioGeo };
 
-    return from(getDocs(colRef)).pipe(
-      map(snapshot => {
-        const usuarios: UsuarioCercano[] = [];
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          const ubicacion = data.ubicacion as GeoPoint;
-          const distancia = this.calcularDistancia(lat, lon, ubicacion.latitude, ubicacion.longitude);
-          if (distancia <= distanciaMax) {
-            usuarios.push({
-              correo: data.correo,
-              nombre: data.nombre,
-              avatar: data.avatar,
-              lat: ubicacion.latitude,
-              lon: ubicacion.longitude,
-            });
-          }
-        });
-        return usuarios;
-      })
-    );
+    if (!usuarios || typeof usuarios !== 'object') return [];
+
+    const actual = usuarios[uidActual];
+    if (!actual) return [];
+
+    return Object.entries(usuarios)
+      .filter(([uid, user]) => uid !== uidActual)
+      .map(([_, user]) => ({
+        ...user,
+        distancia: this.calcularDistancia(
+          actual.lat,
+          actual.lon,
+          user.lat,
+          user.lon
+        ),
+      }))
+      .filter((u) => u.distancia <= this.radioDeteccionMetros);
   }
 
-  emailToKey(correo: string): string {
-    return correo.replace(/\./g, '_').replace(/@/g, '-at-');
-  }
-
-  private calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3;
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
+  private calcularDistancia(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number {
+    const R = 6371e3; // metros
+    const rad = (x: number) => (x * Math.PI) / 180;
+    const dLat = rad(lat2 - lat1);
+    const dLon = rad(lon2 - lon1);
     const a =
-      Math.sin(Δφ / 2) ** 2 +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(rad(lat1)) *
+        Math.cos(rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
     return R * c;
   }
 }

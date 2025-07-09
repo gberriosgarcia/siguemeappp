@@ -12,7 +12,14 @@ import { Preferences } from '@capacitor/preferences';
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
   standalone: false,
+
+providers: [
+  Camera,
+]
+
+
 })
+
 export class ProfilePage {
   nombreUsuario = 'Usuario';
   fotos: SafeUrl[] = [];
