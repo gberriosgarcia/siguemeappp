@@ -1,89 +1,91 @@
-import { Component, AfterViewInit, OnDestroy, NgZone } from '@angular/core';
+// src/app/home/home.page.ts
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { NavController } from '@ionic/angular';
 import { SessionService } from 'src/app/services/session.service';
-import { UsuarioCercano } from 'src/app/models/usuario-cercano.model';
-import { Perfil } from 'src/app/models/perfil.model';
-import { Subscription } from 'rxjs';
-import { Firestore, collection, collectionData, doc, setDoc } from '@angular/fire/firestore';
-import { Geolocation } from '@capacitor/geolocation';
+import { UbicacionService } from 'src/app/services/ubicacion.service';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
-  standalone: false,
+  standalone: false
 })
-export class HomePage implements AfterViewInit, OnDestroy {
-  usuariosCercanos: UsuarioCercano[] = [];
-  email = '';
-  slideOpts = { initialSlide: 0, speed: 400 };
-  private sub: Subscription | null = null;
+export class HomePage implements OnInit, OnDestroy {
+  usuariosCercanos: Array<{ userId: string; name: string; avatar: string; distance: number }> = [];
+  loading = true;
+  private intervalId!: any;
 
   constructor(
     private session: SessionService,
-    private firestore: Firestore,
+    private ubicSvc: UbicacionService,
+    private navCtrl: NavController,
     private zone: NgZone
   ) {}
 
-  async ngAfterViewInit() {
-    try {
-      const perfil: Perfil | null = await this.session.obtenerPerfil();
-      if (!perfil?.correo) return;
-
-      this.email = perfil.correo;
-
-      const posicion = await Geolocation.getCurrentPosition();
-      const { latitude, longitude } = posicion.coords;
-
-      const userDoc = doc(this.firestore, 'usuarios', this.emailToKey(perfil.correo));
-      await setDoc(userDoc, {
-        correo: perfil.correo,
-        nombre: perfil.usuario || 'Usuario Anónimo',
-        avatar: perfil.avatar || '',
-        lat: latitude,
-        lon: longitude,
-        timestamp: Date.now(),
-      }, { merge: true });
-
-      const usuariosRef = collection(this.firestore, 'usuarios');
-      this.sub = collectionData(usuariosRef, { idField: 'id' }).subscribe((usuarios: any[]) => {
-        this.zone.run(() => {
-          this.usuariosCercanos = usuarios.filter((user) => {
-            if (!user?.lat || !user?.lon) return false;
-            const distancia = this.calcularDistancia(latitude, longitude, user.lat, user.lon);
-            return distancia <= 500 && this.emailToKey(user.correo) !== this.emailToKey(this.email);
-          });
-          console.log('[Home] Usuarios cercanos encontrados:', this.usuariosCercanos);
-        });
-      });
-    } catch (err) {
-      console.error('[Home] Error general:', err);
+  async ngOnInit() {
+    const perfil = this.session.getPerfil();
+    if (!perfil) {
+      this.loading = false;
+      return;
     }
-  }
 
-  verPerfil(user: UsuarioCercano) {
-    window.location.href = `/previewuser/${user.correo}`;
+    const myKey = this.ubicSvc.sanitizeKey(perfil.correo);
+
+    // Publica ubicación con nombre y avatar
+    await this.ubicSvc.updateMyLocation(
+      perfil.correo,
+      perfil.usuario || 'Usuario',
+      perfil.avatar || ''
+    );
+    await this.refreshNearby(myKey);
+
+    // Refresca cada 5 segundos
+    this.intervalId = setInterval(async () => {
+      await this.ubicSvc.updateMyLocation(
+        perfil.correo,
+        perfil.usuario || 'Usuario',
+        perfil.avatar || ''
+      );
+      await this.refreshNearby(myKey);
+    }, 5000);
   }
 
   ngOnDestroy() {
-    this.sub?.unsubscribe();
+    clearInterval(this.intervalId);
   }
 
-  private emailToKey(correo: string): string {
-    return correo.replace(/\./g, '_').replace(/@/g, '-at-');
+  /** Recarga usuarios activos (últimos 30s) con avatar limpio */
+  private async refreshNearby(myKey: string) {
+    const THRESHOLD_MS = 30000;
+    try {
+      const all = await this.ubicSvc.queryNearby(0.5);
+      const now = Date.now();
+
+      this.zone.run(() => {
+        this.usuariosCercanos = all
+          .filter(u => u.userId !== myKey && now - u.timestamp <= THRESHOLD_MS)
+          .map(u => {
+            let avatarUrl = 'assets/avatar.png';
+            if (u.avatar) {
+              avatarUrl = (u.avatar.startsWith('http') || u.avatar.startsWith('data:'))
+                ? u.avatar
+                : `assets/avatars/${u.avatar}`;
+            }
+            return { userId: u.userId, name: u.name, avatar: avatarUrl, distance: u.distance };
+          });
+        this.loading = false;
+      });
+    } catch (err) {
+      console.error('HomePage: error refrescando nearby', err);
+      this.zone.run(() => { this.loading = false; });
+    }
   }
 
-  private calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3;
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-    const a =
-      Math.sin(Δφ / 2) ** 2 +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
+  /** Navega al perfil del usuario seleccionado */
+  verPerfil(userId: string) {
+    this.navCtrl.navigateForward(`/previewuser/${userId}`);
   }
 }
+
+
+

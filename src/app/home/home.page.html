@@ -1,40 +1,37 @@
-<ion-content class="ion-padding">
-  <!-- Barra superior/menú -->
-  <ion-toolbar class="barrasuperior" style="--background: transparent; --box-shadow: none;">
+<!-- src/app/home/home.page.html -->
+<ion-header>
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
+      <ion-menu-button menu="first"></ion-menu-button>
     </ion-buttons>
+    <ion-title>Usuarios Cercanos</ion-title>
   </ion-toolbar>
+</ion-header>
 
-  <!-- Título -->
-  <p class="titulo-personas">Personas cerca tuyo:</p>
+<ion-content class="ion-padding">
+  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
 
-  <!-- 📍 Mapa en tiempo real -->
+  <ion-grid *ngIf="!loading">
+    <ion-row>
+      <ion-col size="12" size-md="6" *ngFor="let u of usuariosCercanos">
+        <ion-card button (click)="verPerfil(u.userId)">
+          <ion-item lines="none">
+            <ion-avatar slot="start">
+              <img [src]="u.avatar" />
+            </ion-avatar>
+            <ion-label>
+              <h2>{{ u.name }}</h2>
+              <p>{{ u.distance }} metros de ti</p>
+            </ion-label>
+          </ion-item>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 
-  <!-- Slider de personas reales -->
-  <ion-slides [options]="slideOpts">
-    <ion-slide>
-      <div class="user-row">
-        <button *ngFor="let user of usuariosCercanos"
-                (click)="verPerfil(user)"
-                class="user-card-button">
-          <div class="user-info">
-            <img [src]="user.avatar || 'assets/avatar.png'" alt="{{ user.nombre }}" class="avatar" />
-            <span class="user-name">{{ user.nombre || 'Usuario cercano' }}</span>
-          </div>
-          <ion-icon name="ellipsis-vertical-outline" class="options-icon"></ion-icon>
-        </button>
-
-        
-      </div>
-    </ion-slide>
-  </ion-slides>
-
-  <!-- Paginador -->
-  <div class="pager">
-    <div class="dot active"></div>
-    <div class="dot"></div>
-    <div class="dot"></div>
-  </div>
+  <ion-item *ngIf="!loading && usuariosCercanos.length === 0">
+    <ion-label>No se encontraron usuarios cercanos.</ion-label>
+  </ion-item>
 </ion-content>
+
 

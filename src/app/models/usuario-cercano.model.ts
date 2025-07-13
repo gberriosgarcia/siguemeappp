@@ -4,4 +4,5 @@ export interface UsuarioCercano {
   avatar?: string;
   lat: number;
   lon: number;
+  timestamp: number;
 }

@@ -1,73 +1,107 @@
-import { Injectable, NgZone } from '@angular/core';
-import { AngularFireDatabase } from '@angular/fire/compat/database';
+// src/app/services/ubicacion.service.ts
+import { Injectable } from '@angular/core';
+import {
+  Database,
+  ref,
+  set,
+  get,
+  query,
+  orderByChild,
+  startAt,
+  endAt,
+  onDisconnect
+} from '@angular/fire/database';
 import { Geolocation } from '@capacitor/geolocation';
-import { UsuarioCercano } from '../models/usuario-cercano.model';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {
+  geohashForLocation,
+  geohashQueryBounds,
+  distanceBetween
+} from 'geofire-common';
 
 @Injectable({ providedIn: 'root' })
 export class UbicacionService {
-  constructor(
-    private db: AngularFireDatabase,
-    private zone: NgZone
-  ) {}
+  private basePath = 'userLocations';
 
-  async guardarUbicacion(perfil: { correo: string; usuario?: string; avatar?: string }) {
-    const posicion = await Geolocation.getCurrentPosition();
-    const { latitude, longitude } = posicion.coords;
+  constructor(private db: Database) {}
 
-    console.log('[UbicacionService] Ubicación obtenida:', latitude, longitude);
-
-    const key = this.emailToKey(perfil.correo);
-    const data = {
-      correo: perfil.correo,
-      nombre: perfil.usuario || 'Usuario',
-      avatar: perfil.avatar || '',
-      lat: latitude,
-      lon: longitude,
-      timestamp: Date.now()
-    };
-
-    this.zone.run(() => {
-      this.db.object(`usuarios/${key}`).set(data)
-        .then(() => {
-          console.log('[UbicacionService] Ubicación guardada con éxito');
-        })
-        .catch((error) => {
-          console.error('[UbicacionService] Error al guardar en Firebase:', error);
-        });
-    });
+  /**
+   * Normaliza un identificador para usarlo como clave en RTDB
+   */
+  public sanitizeKey(id: string): string {
+    return id
+      .replace(/\./g, '_')   // punto → guión bajo
+      .replace(/@/g, '-at-')  // arroba → "-at-"
+      .replace(/#/g, '_')     // elimina caracteres inválidos
+      .replace(/\$/g, '_')
+      .replace(/\[/g, '_')
+      .replace(/]/g, '_');
   }
 
-  obtenerUsuariosCercanos(lat: number, lon: number, distanciaMax = 500): Observable<UsuarioCercano[]> {
-    return this.db
-      .list<UsuarioCercano>('usuarios')
-      .valueChanges()
-      .pipe(
-        map((usuarios: UsuarioCercano[]) =>
-          usuarios.filter((u) =>
-            this.calcularDistancia(lat, lon, u.lat, u.lon) <= distanciaMax
-          )
-        )
-      );
+  /**
+   * Guarda la ubicación actual con nombre y avatar, junto con geohash y timestamp,
+   * y programa borrado automático al desconectarse.
+   * @param userId Email del usuario (se saneará para la clave)
+   * @param nombre Nombre para mostrar
+   * @param avatar URL o base64 del avatar
+   */
+  async updateMyLocation(
+    userId: string,
+    nombre: string = '',
+    avatar: string = ''
+  ): Promise<void> {
+    const pos = await Geolocation.getCurrentPosition();
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const hash = geohashForLocation([lat, lng]);
+    const timestamp = Date.now();
+    const key = this.sanitizeKey(userId);
+    const nodeRef = ref(this.db, `${this.basePath}/${key}`);
+
+    // Publica lat, lng, hash, timestamp, nombre y avatar
+    await set(nodeRef, { lat, lng, hash, timestamp, nombre, avatar });
+
+    // Borra automáticamente este nodo al desconectarte
+    onDisconnect(nodeRef).remove();
   }
 
-  emailToKey(correo: string): string {
-    return correo.replace(/\./g, '_').replace(/@/g, '-at-');
-  }
+  /**
+   * Recupera usuarios dentro de `radiusKm` kilómetros,
+   * devolviendo userId, nombre, avatar, distancia y timestamp.
+   */
+  async queryNearby(
+    radiusKm: number
+  ): Promise<Array<{ userId: string; name: string; avatar: string; distance: number; timestamp: number }>> {
+    const pos = await Geolocation.getCurrentPosition();
+    const center: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+    const radiusM = radiusKm * 1000;
+    const bounds = geohashQueryBounds(center, radiusM);
+    const baseRef = ref(this.db, this.basePath);
 
-  private calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3;
-    const φ1 = (lat1 * Math.PI) / 180;
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+    // Ejecuta consultas por cada rango de geohash
+    const snaps = await Promise.all(
+      bounds.map(b =>
+        get(query(baseRef, orderByChild('hash'), startAt(b[0]), endAt(b[1])))
+      )
+    );
 
-    const a =
-      Math.sin(Δφ / 2) ** 2 +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // metros
+    const results: Array<{ userId: string; name: string; avatar: string; distance: number; timestamp: number }> = [];
+    for (const snap of snaps) {
+      snap.forEach(child => {
+        const data = child.val() as any;
+        const dist = distanceBetween([data.lat, data.lng], center);
+        if (dist <= radiusM && typeof data.timestamp === 'number') {
+          results.push({
+            userId: child.key as string,
+            name: data.nombre as string,
+            avatar: data.avatar as string,
+            distance: Math.round(dist),
+            timestamp: data.timestamp
+          });
+        }
+      });
+    }
+    return results;
   }
 }
+
+

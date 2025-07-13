@@ -43,6 +43,7 @@
     "cordova-sqlite-storage": "^7.0.0",
     "exif-js": "^2.3.0",
     "firebase": "^9.23.0",
+    "geofire-common": "^6.0.0",
     "ionicons": "^7.4.0",
     "leaflet": "^1.9.4",
     "rxjs": "~7.8.0",
@@ -79,6 +80,14 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "license-webpack-plugin": "^3.0.0",
     "typescript": "~5.6.3"
+  },
+  "overrides": {
+    "@angular/fire": {
+      "peerDependencies": {
+        "@angular/common": "19.x",
+        "@angular/core": "19.x"
+      }
+    }
   },
   "description": "An Ionic project"
 }

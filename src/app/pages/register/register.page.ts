@@ -1,16 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  AbstractControl,
-  ValidatorFn,
-} from '@angular/forms';
 import { ToastController } from '@ionic/angular';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
 import { SqliteService } from 'src/app/services/sqlite.service';
-
-// ✅ FIREBASE COMPATIBLE
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Firestore, collection, addDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-register',
@@ -28,7 +20,7 @@ export class RegisterPage implements OnInit {
     private fb: FormBuilder,
     private toastCtrl: ToastController,
     private sqlite: SqliteService,
-    private firestore: AngularFirestore // ✅ aquí va
+    private firestore: Firestore
   ) {}
 
   ngOnInit() {
@@ -64,8 +56,8 @@ export class RegisterPage implements OnInit {
       await this.sqlite.addUser(usuario, correo, contrasena, fechaNacimiento);
       console.log('[SQLite] Usuario registrado:', usuario, correo);
 
-      // ✅ Guarda en Firestore usando compat
-      await this.firestore.collection('usuarios').add({
+      const usuariosRef = collection(this.firestore, 'usuarios');
+      await addDoc(usuariosRef, {
         usuario,
         correo,
         contrasena,
@@ -104,4 +96,3 @@ export class RegisterPage implements OnInit {
     }));
   }
 }
-
