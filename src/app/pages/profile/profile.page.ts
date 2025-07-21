@@ -1,7 +1,7 @@
 // src/app/pages/profile/profile.page.ts
 import { Component, OnInit } from '@angular/core';
 import { Camera, CameraOptions } from '@awesome-cordova-plugins/camera/ngx';
-import { Platform } from '@ionic/angular';
+import { Platform, ToastController } from '@ionic/angular';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Capacitor } from '@capacitor/core';
 import { AvatarService } from 'src/app/services/avatar.service';
@@ -14,7 +14,7 @@ import { Database, ref, get } from '@angular/fire/database';
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
-  standalone:false
+  standalone: false
 })
 export class ProfilePage implements OnInit {
   nombreUsuario = 'Usuario';
@@ -29,6 +29,7 @@ export class ProfilePage implements OnInit {
     private sanitizer: DomSanitizer,
     private avatarService: AvatarService,
     private session: SessionService,
+    private toastCtrl: ToastController,
     private route: ActivatedRoute,
     private db: Database
   ) {}
@@ -36,11 +37,9 @@ export class ProfilePage implements OnInit {
   async ngOnInit() {
     const otherId = this.route.snapshot.paramMap.get('id');
     if (otherId) {
-      // Vista de perfil ajeno
       this.isOwnProfile = false;
       await this.loadOtherProfile(otherId);
     } else {
-      // Mi propio perfil
       this.isOwnProfile = true;
       this.session.perfil$.subscribe(async p => {
         if (p?.correo) {
@@ -55,12 +54,16 @@ export class ProfilePage implements OnInit {
   }
 
   private async loadOtherProfile(userId: string) {
-    // Obtiene nombre y avatar desde /profiles/{userId}
     const snap = await get(ref(this.db, `profiles/${userId}`));
     if (snap.exists()) {
       const data: any = snap.val();
       this.nombreUsuario = data.nombre || 'Usuario';
       this.avatarUrl = data.avatar || 'assets/default-avatar.png';
+      if (Array.isArray(data.fotos)) {
+        this.fotos = data.fotos.map((url: string) =>
+          this.sanitizer.bypassSecurityTrustUrl(url)
+        );
+      }
     }
   }
 
@@ -79,7 +82,7 @@ export class ProfilePage implements OnInit {
       correctOrientation: true,
     };
     try {
-      let fileUrl = await this.camera.getPicture(options) as string;
+      let fileUrl = (await this.camera.getPicture(options)) as string;
       if (this.platform.is('android') && !fileUrl.startsWith('file://')) {
         fileUrl = 'file://' + fileUrl;
       }
@@ -111,5 +114,16 @@ export class ProfilePage implements OnInit {
 
   cambiarFoto(index: number) {
     if (this.isOwnProfile) this.subirFoto(index);
+  }
+
+  /** Renombrado para no usar caracteres especiales en el template */
+  async addFriend() {
+    const toast = await this.toastCtrl.create({
+      message: 'Solicitud de amistad enviada',
+      duration: 2000,
+      position: 'bottom'
+    });
+    await toast.present();
+    // Aquí podrías llamar a tu servicio para guardar la petición en BD
   }
 }
